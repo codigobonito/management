@@ -4,6 +4,7 @@ teams:
   admins:
   - jvfe
   - lubianat
-  telegram: []
+  telegram:
+  - icaromsc
   vasco:
   - lubianat
