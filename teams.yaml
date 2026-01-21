@@ -1,9 +1,7 @@
 teams:
   admins:
-  - lubianat
   - jvfe
+  - lubianat
+  telegram: []
   vasco:
   - lubianat
-  telegram:
-  - lubianat
-  - icaromsc
