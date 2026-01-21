@@ -1,0 +1,84 @@
+name: Teams export (GitHub Org Settings -> teams.yaml PR)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 3 * * *" # daily
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mint token via GitHub app
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Export teams.yaml
+        env:
+          ORG: ${{ github.repository_owner }}
+          TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet pyyaml requests
+
+          python - <<'PY'
+          import os, requests, yaml
+
+          ORG = os.environ["ORG"]
+          TOKEN = os.environ["TOKEN"]
+          API = "https://api.github.com"
+
+          H = {
+            "Authorization": f"Bearer {TOKEN}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+          }
+
+          def paginate(url):
+            out, page = [], 1
+            while True:
+              r = requests.get(url, headers=H, params={"per_page": 100, "page": page}, timeout=60)
+              r.raise_for_status()
+              batch = r.json()
+              out.extend(batch)
+              if len(batch) < 100: break
+              page += 1
+            return out
+
+          teams = paginate(f"{API}/orgs/{ORG}/teams")
+          teams_map = {}
+
+          for t in sorted(teams, key=lambda x: x["slug"]):
+            slug = t["slug"]
+            members = paginate(f"{API}/orgs/{ORG}/teams/{slug}/members")
+            logins = sorted({m["login"] for m in members if "login" in m})
+            teams_map[slug] = logins
+
+          doc = {"teams": teams_map}
+
+          with open("teams.yaml", "w", encoding="utf-8") as f:
+            yaml.safe_dump(doc, f, sort_keys=True, default_flow_style=False)
+
+          print(f"Wrote teams.yaml with {len(teams_map)} teams.")
+          PY
+
+      - name: Create PR if changed
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: export teams.yaml"
+          title: "chore: sync teams.yaml from GitHub"
+          body: "Automated export of org team membership into teams.yaml."
+          branch: chore/teams-export
+          delete-branch: true
+          add-paths: |
+            teams.yaml
