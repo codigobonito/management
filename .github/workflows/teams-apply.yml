@@ -1,0 +1,106 @@
+name: Apply config from teams.yaml -> GitHub
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ "teams.yaml" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Apply teams.yaml (internal members only)
+        env:
+          ORG: ${{ github.repository_owner }}
+          TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet pyyaml requests
+
+          python - <<'PY'
+          import os, sys, requests, yaml
+
+          ORG = os.environ["ORG"]
+          TOKEN = os.environ["TOKEN"]
+          API = "https://api.github.com"
+
+          H = {
+            "Authorization": f"Bearer {TOKEN}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+          }
+
+          def paginate(url):
+            out, page = [], 1
+            while True:
+              r = requests.get(url, headers=H, params={"per_page": 100, "page": page}, timeout=60)
+              r.raise_for_status()
+              batch = r.json()
+              out.extend(batch)
+              if len(batch) < 100: break
+              page += 1
+            return out
+
+          def die(msg):
+            print(msg, file=sys.stderr)
+            raise SystemExit(2)
+
+          with open("teams.yaml", "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
+          desired = cfg.get("teams")
+          if not isinstance(desired, dict):
+            die("teams.yaml must contain a mapping 'teams: {team_slug: [user, ...]}'")
+
+          # validate org members (step 1: no invites)
+          members = paginate(f"{API}/orgs/{ORG}/members")
+          org_members = {m["login"] for m in members if "login" in m}
+
+          missing = sorted({u for users in desired.values() for u in (users or []) if u not in org_members})
+          if missing:
+            die("These users are not org members (invites not implemented yet):\n- " + "\n- ".join(missing))
+
+          # ensure team exists + diff membership
+          teams = paginate(f"{API}/orgs/{ORG}/teams")
+          existing_slugs = {t["slug"] for t in teams if "slug" in t}
+
+          for slug, users in sorted(desired.items()):
+            if slug not in existing_slugs:
+              die(f"Team slug '{slug}' does not exist in org '{ORG}'")
+
+            want = set(users or [])
+            current_members = paginate(f"{API}/orgs/{ORG}/teams/{slug}/members")
+            have = {m["login"] for m in current_members if "login" in m}
+
+            to_add = sorted(want - have)
+            to_remove = sorted(have - want)
+
+            for u in to_add:
+              url = f"{API}/orgs/{ORG}/teams/{slug}/memberships/{u}"
+              r = requests.put(url, headers=H, timeout=60)
+              if r.status_code >= 400:
+                die(f"Failed adding {u} to {slug}: {r.status_code} {r.text}")
+              print(f"ADD {slug}: {u}")
+
+            for u in to_remove:
+              url = f"{API}/orgs/{ORG}/teams/{slug}/memberships/{u}"
+              r = requests.delete(url, headers=H, timeout=60)
+              if r.status_code >= 400:
+                die(f"Failed removing {u} from {slug}: {r.status_code} {r.text}")
+              print(f"REMOVE {slug}: {u}")
+
+          print("Done.")
+          PY
