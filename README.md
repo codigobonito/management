@@ -94,6 +94,8 @@ Add the GitHub App credentials as repository secrets:
 
 ## 4. Set Up Your Teams
 
+**Important**: Teams must already exist in your GitHub organization before you can manage their membership with this tool. Create any needed teams in the GitHub UI (under Organization Settings → Teams) before proceeding. The workflows manage team membership, not team creation.
+
 ### Option A: Start with Existing Teams (Recommended)
 
 If your organization already has teams configured in GitHub:
@@ -130,8 +132,6 @@ teams:
 2. Commit and push the changes to the `main` branch
 
 3. The **"YAML → GitHub"** workflow will automatically run and sync the teams
-
-**Note**: Teams must already exist in your GitHub organization. The workflows manage team membership, not team creation.
 
 ## 5. Regular Usage
 
