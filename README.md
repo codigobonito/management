@@ -18,4 +18,8 @@ There are two lightweight workflows:
 
 * YAML → GitHub (apply), Runs when teams.yaml is changed. Adds/removes users from teams to match the file. Invites users to the org when needed
 
+# Current features
 
+* Manages inclusion/exclusion for teams in an organization
+* Manages invites for non-org members and team inclusion (when sync is run)
+* Synchronization workflows are run daily, upon manual dispatch or when `teams.yaml` is changed
