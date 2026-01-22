@@ -47,7 +47,7 @@ The workflows require a GitHub App to authenticate and manage teams on behalf of
 
 ### Creating the GitHub App
 
-1. Go to your organization settings: `https://github.com/organizations/YOUR_ORG/settings/apps`
+1. Go to your organization settings > Developer settings > GitHub Apps (the URL will be: `https://github.com/organizations/YOUR_ORG/settings/apps` - replace `YOUR_ORG` with your organization name)
 2. Click **"New GitHub App"**
 3. Configure the app with these settings:
    - **GitHub App name**: Choose a name (e.g., "Team Management Bot")
@@ -84,7 +84,7 @@ After creating the app:
 
 Add the GitHub App credentials as repository secrets:
 
-1. Go to your repository settings: `https://github.com/YOUR_ORG/team-management/settings/secrets/actions`
+1. Go to your repository settings > Secrets and variables > Actions > Repository secrets (the URL will be: `https://github.com/YOUR_ORG/team-management/settings/secrets/actions` - replace with your org and repo names)
 2. Click **"New repository secret"** and add:
    - **Name**: `GH_APP_ID`
    - **Value**: Your GitHub App ID (from step 2)
@@ -102,7 +102,7 @@ If your organization already has teams configured in GitHub:
 
 1. Manually trigger the **"GitHub → YAML"** workflow to export your current team structure:
    - Go to the **Actions** tab in your repository
-   - Select the **"GitHub settings --> teams.yaml sync"** workflow from the left sidebar
+   - Select the **"GitHub settings → teams.yaml sync"** workflow from the left sidebar
    - Click **"Run workflow"** dropdown (on the right)
    - Click the green **"Run workflow"** button
    
