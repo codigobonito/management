@@ -17,6 +17,11 @@ REQUEST_TIMEOUT = 60
 COMMENT = "# AUTOMATICALLY UPDATED \u2014 DO NOT EDIT THIS SECTION MANUALLY\n"
 MARKER = "invite_sent:"
 
+# Retry configuration for API calls
+RETRY_TOTAL = 3
+RETRY_BACKOFF_FACTOR = 1
+RETRY_STATUS_FORCELIST = [429, 500, 502, 503, 504]
+
 
 def main():
     org = require_env("ORG")
@@ -68,9 +73,9 @@ def create_session(token):
     """Create a requests session with retry logic and exponential backoff."""
     session = requests.Session()
     retries = Retry(
-        total=3,
-        backoff_factor=1,
-        status_forcelist=[429, 500, 502, 503, 504],
+        total=RETRY_TOTAL,
+        backoff_factor=RETRY_BACKOFF_FACTOR,
+        status_forcelist=RETRY_STATUS_FORCELIST,
         respect_retry_after_header=True
     )
     session.mount("https://", HTTPAdapter(max_retries=retries))
