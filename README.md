@@ -30,3 +30,143 @@ There are three lightweight workflows:
 * GitHub → YAML is run hourly or upon manual dispatch. If changes are detected, a PR is triggered. 
 
 * YAML → GitHub is run when `teams.yaml` is changed in the `main` branch.
+
+# Reusing this Template in Your Organization
+
+This repository can be used as a template to manage team memberships in your own GitHub organization. Follow these steps to set it up:
+
+## 1. Copy the Template Repository
+
+1. Click the "Use this template" button at the top of this repository (or fork it)
+2. Create a new repository in your organization (e.g., `your-org/team-management`)
+3. Clone the new repository to your local machine
+
+## 2. Create and Configure a GitHub App
+
+The workflows require a GitHub App to authenticate and manage teams on behalf of your organization. This is necessary because the standard `GITHUB_TOKEN` has limited permissions for organization management.
+
+### Creating the GitHub App
+
+1. Go to your organization settings: `https://github.com/organizations/YOUR_ORG/settings/apps`
+2. Click **"New GitHub App"**
+3. Configure the app with these settings:
+   - **GitHub App name**: Choose a name (e.g., "Team Management Bot")
+   - **Homepage URL**: Use your repository URL
+   - **Webhook**: Uncheck "Active" (not needed)
+   - **Permissions** (Repository permissions):
+     - Contents: Read and write
+     - Pull requests: Read and write
+   - **Permissions** (Organization permissions):
+     - Members: Read and write
+     - Administration: Read (to list teams)
+   - **Where can this GitHub App be installed?**: Only on this account
+4. Click **"Create GitHub App"**
+
+### Generating and Storing Credentials
+
+After creating the app:
+
+1. **Generate a private key**:
+   - On the app settings page, scroll to "Private keys"
+   - Click **"Generate a private key"**
+   - Save the downloaded `.pem` file securely
+
+2. **Note the App ID**:
+   - Find the App ID near the top of the app settings page
+
+3. **Install the app on your organization**:
+   - Click **"Install App"** in the left sidebar
+   - Select your organization
+   - Choose "All repositories" or select specific repositories (including your team-management repo)
+   - Click **"Install"**
+
+## 3. Configure Repository Secrets
+
+Add the GitHub App credentials as repository secrets:
+
+1. Go to your repository settings: `https://github.com/YOUR_ORG/team-management/settings/secrets/actions`
+2. Click **"New repository secret"** and add:
+   - **Name**: `GH_APP_ID`
+   - **Value**: Your GitHub App ID (from step 2)
+3. Click **"New repository secret"** again and add:
+   - **Name**: `GH_APP_PRIVATE_KEY`
+   - **Value**: The entire contents of the `.pem` file (including `-----BEGIN RSA PRIVATE KEY-----` and `-----END RSA PRIVATE KEY-----` lines)
+
+## 4. Set Up Your Teams
+
+### Option A: Start with Existing Teams (Recommended)
+
+If your organization already has teams configured in GitHub:
+
+1. Manually trigger the **"GitHub → YAML"** workflow to export your current team structure:
+   - Go to the **Actions** tab in your repository
+   - Select the **"GitHub settings --> teams.yaml sync"** workflow from the left sidebar
+   - Click **"Run workflow"** dropdown (on the right)
+   - Click the green **"Run workflow"** button
+   
+2. Wait for the workflow to complete (check the Actions tab for status)
+
+3. The workflow will automatically create a pull request with your current team memberships exported to `teams.yaml`
+
+4. Review the PR to ensure the exported data looks correct
+
+5. Merge the PR to establish `teams.yaml` as your source of truth
+
+### Option B: Start Fresh
+
+If you want to create a new team structure:
+
+1. Create or edit the `teams.yaml` file in your repository with your desired team structure:
+
+```yaml
+teams:
+  developers:
+    - alice
+    - bob
+  admins:
+    - charlie
+```
+
+2. Commit and push the changes to the `main` branch
+
+3. The **"YAML → GitHub"** workflow will automatically run and sync the teams
+
+**Note**: Teams must already exist in your GitHub organization. The workflows manage team membership, not team creation.
+
+## 5. Regular Usage
+
+Once set up, the repository will:
+
+- **Automatically export** team changes made in GitHub UI (runs hourly via cron)
+- **Automatically apply** changes when you merge PRs that modify `teams.yaml`
+- **Validate** team member usernames in pull requests before merging
+
+### Making Team Changes
+
+**Method 1: Edit `teams.yaml` (Recommended)**
+
+1. Create a branch and edit `teams.yaml`
+2. Open a pull request
+3. The validation workflow will check that all usernames are valid
+4. Merge the PR
+5. The sync workflow will automatically update GitHub teams
+
+**Method 2: Use GitHub UI**
+
+1. Make changes directly in the GitHub teams UI
+2. Wait for the next hourly sync (or manually trigger the "GitHub → YAML" workflow)
+3. Review and merge the auto-generated PR
+
+### Manual Workflow Triggers
+
+All workflows can be manually triggered from the Actions tab:
+
+- **GitHub → YAML**: Export current GitHub teams to `teams.yaml`
+- **YAML → GitHub**: Apply `teams.yaml` to GitHub (normally runs on push to main)
+- **Validation**: Validate `teams.yaml` (normally runs on PRs)
+
+## Troubleshooting
+
+- **Workflows fail with authentication errors**: Check that your GitHub App is installed on the organization and repository secrets are configured correctly
+- **Teams not syncing**: Ensure the teams already exist in your organization (create them in GitHub UI first)
+- **Permission errors**: Verify your GitHub App has the required organization and repository permissions
