@@ -6,6 +6,10 @@ on:
     paths: ["teams.yaml"]
   workflow_dispatch:
 
+concurrency:
+  group: team-sync-${{ github.repository }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
