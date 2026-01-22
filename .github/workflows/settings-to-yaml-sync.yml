@@ -39,7 +39,7 @@ jobs:
           commit-message: "chore: export teams.yaml"
           title: "[AUTO] Exporting Organization settings from GitHub"
           body:
-            " The management workflow detected changes between the organization settings and the teams.yaml file.\
+            " The management workflow detected changes between the organization settings and the teams.yaml file. \
             Exporting current team membership into teams.yaml. \
             **Note that checks are not run by GH Actions-generated PRs.** \
             You may need to close and reopen the PR to trigger checks. \n\n\
