@@ -12,10 +12,17 @@ The idea is:
 
 # Workflows
 
-There are two lightweight workflows:
+There are three lightweight workflows:
 
-* GitHub → YAML (export), periodically reads the manually-changed org teams from GitHub, Opens a PR updating teams.yaml
+* **Validation** (PR check), Runs on pull requests that modify teams.yaml. Validates that all GitHub usernames exist and warns if users are not yet org members
 
-* YAML → GitHub (apply), Runs when teams.yaml is changed. Adds/removes users from teams to match the file. Invites users to the org when needed
+* **GitHub → YAML** (export), Periodically reads the manually-changed org teams from GitHub, Opens a PR updating teams.yaml
 
+* **YAML → GitHub** (apply), Runs when teams.yaml is changed. Adds/removes users from teams to match the file. Invites users to the org when needed
 
+# Current features
+
+* Validates GitHub usernames in pull requests before merging
+* Manages inclusion/exclusion for teams in an organization
+* Manages invites for non-org members and team inclusion (when sync is run)
+* Synchronization workflows are run daily, upon manual dispatch or when `teams.yaml` is changed

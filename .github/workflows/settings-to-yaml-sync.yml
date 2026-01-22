@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   apply:
@@ -35,16 +34,14 @@ jobs:
 
           python scripts/teams_yaml_to_github.py
 
-      - name: Open PR to update invite_sent (if changed)
+      - name: Commit and push invite_sent update (if changed)
         if: steps.apply.outputs.teams_yaml_changed == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "chore: update invite_sent in teams.yaml"
-          title: "chore: update invite_sent in teams.yaml"
-          body: |
-            Automated update of the invite_sent block (pending org invites status).
-            Note: the invite_sent section is machine-managed.
-          branch: chore/update-invite-sent
-          delete-branch: true
-          add-paths: |
-            teams.yaml
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add teams.yaml
+          git commit -m "chore: update invite_sent in teams.yaml" \
+            -m "" \
+            -m "Automated update of the invite_sent block (pending org invites status)." \
+            -m "Note: the invite_sent section is machine-managed."
+          git push
