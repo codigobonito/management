@@ -40,10 +40,11 @@ jobs:
           title: "[AUTO] Exporting Organization settings from GitHub"
           body:
             " The management workflow detected changes between the organization settings and the teams.yaml file. \
-            Exporting current team membership into teams.yaml. \
+            Exporting current team membership settings into teams.yaml. \n\n\
             **Note that checks are not run by GH Actions-generated PRs.** \
             You may need to close and reopen the PR to trigger checks. \n\n\
-            _This is an automated PR created by the management workflow._"
+            _This is an automated PR created by the management workflow._ \n\n
+            Merging this PR will trigger the 'YAML → GitHub' sync workflow to ensure settings are up to date."
           branch: chore/teams-export
           delete-branch: true
           add-paths: |

@@ -40,6 +40,8 @@ def main():
     changed = new_text != old_text
     if changed:
         teams_path.write_text(new_text, encoding="utf-8")
+    else:
+        print("No changes to teams.yaml needed.")
 
     write_changed_output(changed)
     print("Done.")
