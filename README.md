@@ -35,9 +35,16 @@ There are three lightweight workflows:
 
 This repository can be used as a template to manage team memberships in your own GitHub organization. Follow these steps to set it up:
 
-## 1. Copy the Template Repository
+> **⚠️ IMPORTANT SAFETY NOTE:** After copying this template, you **MUST** clear the `teams.yaml` file before setting up secrets or enabling workflows. The template contains team data from the original organization. If the `teams.yaml → GitHub` workflow runs with this data, it could invite incorrect users to your organization.
+
+## 1. Copy the Template Repository and Clear Sample Data
 
 1. Click the "Use this template" button at the top of this repository (or fork it)
+2. **Immediately** edit `teams.yaml` in your new repository and replace its contents with:
+   ```yaml
+   teams: {}
+   ```
+   This prevents the workflow from applying the original organization's team structure to your organization.
 
 ## 2. Create and Configure a GitHub App
 
