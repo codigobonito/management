@@ -1,12 +1,4 @@
-# AUTOMATICALLY UPDATED — DO NOT EDIT THIS SECTION MANUALLY
-invite_sent:
-- icaromsc
-teams:
-  admins:
-  - jvfe
-  - lubianat
-  telegram:
-  - icaromsc
-  - lubianat
-  vasco:
-  - lubianat
+# This file contains team membership configuration for your organization.
+# After copying this template, run the "GitHub → YAML" workflow manually 
+# to export your current team structure from GitHub.
+teams: {}
