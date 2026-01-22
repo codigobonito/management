@@ -48,19 +48,32 @@ jobs:
           def paginate(url):
             out, page = [], 1
             while True:
-              r = requests.get(url, headers=H, params={"per_page": 100, "page": page}, timeout=60)
-              r.raise_for_status()
-              batch = r.json()
-              out.extend(batch)
-              if len(batch) < 100:
-                break
-              page += 1
+              try:
+                r = requests.get(url, headers=H, params={"per_page": 100, "page": page}, timeout=60)
+                r.raise_for_status()
+                batch = r.json()
+                out.extend(batch)
+                if len(batch) < 100:
+                  break
+                page += 1
+              except requests.exceptions.RequestException as e:
+                print(f"ERROR: Failed to fetch data from GitHub API: {e}")
+                sys.exit(1)
             return out
 
           def user_exists(login: str) -> bool:
             """Check if a GitHub user exists."""
-            r = requests.get(f"{API}/users/{login}", headers=H, timeout=60)
-            return r.status_code == 200
+            try:
+              r = requests.get(f"{API}/users/{login}", headers=H, timeout=60)
+              if r.status_code == 403:
+                # Check if it's a rate limit issue
+                if 'X-RateLimit-Remaining' in r.headers and r.headers['X-RateLimit-Remaining'] == '0':
+                  print(f"ERROR: GitHub API rate limit exceeded")
+                  sys.exit(1)
+              return r.status_code == 200
+            except requests.exceptions.RequestException as e:
+              print(f"ERROR: Failed to check user '{login}': {e}")
+              sys.exit(1)
 
           # Load teams.yaml
           teams_path = Path("teams.yaml")
