@@ -98,7 +98,7 @@ def export_teams(org, headers, old_desired, org_members, pending_invites):
 
 
 def render_yaml(teams_map, invite_sent):
-    doc = {"teams": teams_map, "invite_sent": invite_sent}
+    doc = {"teams": teams_map, "invite_sent": sorted(list(invite_sent))}
     new_text = yaml.safe_dump(doc, sort_keys=True, default_flow_style=False)
     if MARKER in new_text:
         # Inject a warning comment without changing the YAML structure.
