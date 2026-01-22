@@ -1,3 +1,6 @@
+# This script considers teams.yaml as the ground truth
+# and updates the GitHub organization settings accordingly.
+
 import os
 import sys
 from pathlib import Path
@@ -31,7 +34,9 @@ def main():
         existing_slugs,
     )
 
-    new_text = render_yaml(config, desired, org_members, pending_invites, invited_this_run)
+    new_text = render_yaml(
+        config, desired, org_members, pending_invites, invited_this_run
+    )
     changed = new_text != old_text
     if changed:
         teams_path.write_text(new_text, encoding="utf-8")
@@ -143,7 +148,9 @@ def render_yaml(config, desired, org_members, pending_invites, invited_this_run)
         desired_all.update(users)
 
     # invite_sent is a status cache: desired users with pending invites and no membership yet.
-    invite_sent = sorted(((pending_invites | invited_this_run) & desired_all) - org_members)
+    invite_sent = sorted(
+        ((pending_invites | invited_this_run) & desired_all) - org_members
+    )
 
     config["teams"] = desired
     config["invite_sent"] = invite_sent

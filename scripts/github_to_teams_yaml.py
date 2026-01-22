@@ -1,3 +1,6 @@
+# This script considers curreng GitHub organization settings
+# as the ground truth, and overrides team.yaml accordingly.
+
 import os
 from pathlib import Path
 
@@ -21,13 +24,15 @@ def main():
     old_desired = load_previous_desired(teams_path)
 
     org_members, pending_invites = fetch_org_membership(org, headers)
+
     teams_map = export_teams(org, headers, old_desired, org_members, pending_invites)
 
-    invite_sent = compute_invite_sent(teams_map, pending_invites, org_members)
-    new_text = render_yaml(teams_map, invite_sent)
+    new_text = render_yaml(teams_map, pending_invites)
     teams_path.write_text(new_text, encoding="utf-8")
 
-    print(f"Wrote teams.yaml with {len(teams_map)} teams; invite_sent={len(invite_sent)}.")
+    print(
+        f"Wrote teams.yaml with {len(teams_map)} teams; invite_sent={len(pending_invites)}."
+    )
 
 
 def require_env(name):
@@ -90,15 +95,6 @@ def export_teams(org, headers, old_desired, org_members, pending_invites):
         teams_map[slug] = sorted(gh_logins | preserve)
 
     return teams_map
-
-
-def compute_invite_sent(teams_map, pending_invites, org_members):
-    desired_all = set()
-    for users in teams_map.values():
-        desired_all.update(users)
-
-    # invite_sent tracks desired users who are still pending org invites.
-    return sorted((desired_all & pending_invites) - org_members)
 
 
 def render_yaml(teams_map, invite_sent):
