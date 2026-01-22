@@ -29,3 +29,15 @@ There are four lightweight workflows:
 * Manages invites for non-org members and team inclusion (when sync is run)
 * Synchronization workflows are run daily, upon manual dispatch or when `teams.yaml` is changed
 * Manual validation workflow allows checking PRs created by GitHub Actions (automated checks don't run on these PRs due to GitHub's security restrictions)
+
+# Using Manual PR Validation
+
+When the automated export workflow creates a PR, GitHub's security model prevents the validation workflow from running automatically. To validate these PRs before merging:
+
+1. Go to the **Actions** tab in the repository
+2. Select **Manual PR Validation** from the workflows list
+3. Click **Run workflow**
+4. Enter the PR number in the input field
+5. Click **Run workflow** to start the validation
+
+The workflow will validate the `teams.yaml` file and post a comment on the PR with the results. If validation passes, it's safe to merge the PR.
