@@ -38,8 +38,6 @@ This repository can be used as a template to manage team memberships in your own
 ## 1. Copy the Template Repository
 
 1. Click the "Use this template" button at the top of this repository (or fork it)
-2. Create a new repository in your organization (e.g., `your-org/team-management`)
-3. Clone the new repository to your local machine
 
 ## 2. Create and Configure a GitHub App
 
@@ -96,9 +94,9 @@ Add the GitHub App credentials as repository secrets:
 
 **Important**: Teams must already exist in your GitHub organization before you can manage their membership with this tool. Create any needed teams in the GitHub UI (under Organization Settings → Teams) before proceeding. The workflows manage team membership, not team creation.
 
-### Option A: Start with Existing Teams (Recommended)
+### Export Your Current Team Structure
 
-If your organization already has teams configured in GitHub:
+Once you have teams configured in GitHub:
 
 1. Manually trigger the **"GitHub → YAML"** workflow to export your current team structure:
    - Go to the **Actions** tab in your repository
@@ -113,25 +111,6 @@ If your organization already has teams configured in GitHub:
 4. Review the PR to ensure the exported data looks correct
 
 5. Merge the PR to establish `teams.yaml` as your source of truth
-
-### Option B: Start Fresh
-
-If you want to create a new team structure:
-
-1. Create or edit the `teams.yaml` file in your repository with your desired team structure:
-
-```yaml
-teams:
-  developers:
-    - alice
-    - bob
-  admins:
-    - charlie
-```
-
-2. Commit and push the changes to the `main` branch
-
-3. The **"YAML → GitHub"** workflow will automatically run and sync the teams
 
 ## 5. Regular Usage
 
