@@ -12,9 +12,11 @@ The idea is:
 
 # Workflows
 
-There are three lightweight workflows:
+There are four lightweight workflows:
 
 * **Validation** (PR check), Runs on pull requests that modify teams.yaml. Validates that all GitHub usernames exist and warns if users are not yet org members
+
+* **Manual PR Validation**, Manually triggered workflow to validate any PR (including those created by GitHub Actions). Go to Actions → Manual PR Validation → Run workflow, and enter the PR number to validate
 
 * **GitHub → YAML** (export), Periodically reads the manually-changed org teams from GitHub, Opens a PR updating teams.yaml
 
@@ -26,3 +28,4 @@ There are three lightweight workflows:
 * Manages inclusion/exclusion for teams in an organization
 * Manages invites for non-org members and team inclusion (when sync is run)
 * Synchronization workflows are run daily, upon manual dispatch or when `teams.yaml` is changed
+* Manual validation workflow allows checking PRs created by GitHub Actions (automated checks don't run on these PRs due to GitHub's security restrictions)
