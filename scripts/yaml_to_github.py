@@ -7,6 +7,8 @@ from pathlib import Path
 
 import requests
 import yaml
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 API = "https://api.github.com"
 API_VERSION = "2022-11-28"
@@ -19,15 +21,15 @@ MARKER = "invite_sent:"
 def main():
     org = require_env("ORG")
     token = require_env("TOKEN")
-    headers = auth_headers(token)
+    session = create_session(token)
 
     teams_path = Path("teams.yaml")
     config, desired, old_text = load_desired_teams(teams_path)
 
-    org_members, pending_invites, existing_slugs = fetch_org_state(org, headers)
+    org_members, pending_invites, existing_slugs = fetch_org_state(org, session)
     invited_this_run = apply_memberships(
         org,
-        headers,
+        session,
         desired,
         org_members,
         pending_invites,
@@ -62,6 +64,20 @@ def auth_headers(token):
     }
 
 
+def create_session(token):
+    """Create a requests session with retry logic and exponential backoff."""
+    session = requests.Session()
+    retries = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504],
+        respect_retry_after_header=True
+    )
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+    session.headers.update(auth_headers(token))
+    return session
+
+
 def load_desired_teams(path):
     old_text = path.read_text(encoding="utf-8")
     config = yaml.safe_load(old_text) or {}
@@ -79,21 +95,21 @@ def normalize_users(users):
     return [u.strip() for u in (users or []) if isinstance(u, str) and u.strip()]
 
 
-def fetch_org_state(org, headers):
-    members = paginate(f"{API}/orgs/{org}/members", headers)
+def fetch_org_state(org, session):
+    members = paginate(f"{API}/orgs/{org}/members", session)
     org_members = {m["login"] for m in members if "login" in m}
 
-    invites = paginate(f"{API}/orgs/{org}/invitations", headers)
+    invites = paginate(f"{API}/orgs/{org}/invitations", session)
     pending_invites = {i.get("login") for i in invites if i.get("login")}
 
-    teams = paginate(f"{API}/orgs/{org}/teams", headers)
+    teams = paginate(f"{API}/orgs/{org}/teams", session)
     existing_slugs = {t["slug"] for t in teams if "slug" in t}
 
     return org_members, pending_invites, existing_slugs
 
 
 def apply_memberships(
-    org, headers, desired, org_members, pending_invites, existing_slugs
+    org, session, desired, org_members, pending_invites, existing_slugs
 ):
     invited_this_run = set()
 
@@ -103,42 +119,42 @@ def apply_memberships(
 
         want = set(users)
         invited_this_run.update(
-            invite_missing_members(org, headers, want, org_members, pending_invites)
+            invite_missing_members(org, session, want, org_members, pending_invites)
         )
 
-        current_members = paginate(f"{API}/orgs/{org}/teams/{slug}/members", headers)
+        current_members = paginate(f"{API}/orgs/{org}/teams/{slug}/members", session)
         have = {m["login"] for m in current_members if "login" in m}
-        reconcile_team(org, headers, slug, want, have, org_members)
+        reconcile_team(org, session, slug, want, have, org_members)
 
     return invited_this_run
 
 
-def invite_missing_members(org, headers, want, org_members, pending_invites):
+def invite_missing_members(org, session, want, org_members, pending_invites):
     invited = set()
     for login in sorted(want):
         # Avoid duplicate invites by skipping members and pending invites.
         if login in org_members or login in pending_invites:
             continue
-        if invite_by_login(org, login, headers):
+        if invite_by_login(org, login, session):
             invited.add(login)
     return invited
 
 
-def reconcile_team(org, headers, slug, want, have, org_members):
+def reconcile_team(org, session, slug, want, have, org_members):
     # Only org members can be added to teams.
     to_add = sorted((want & org_members) - have)
     to_remove = sorted(have - want)
 
     for login in to_add:
         url = f"{API}/orgs/{org}/teams/{slug}/memberships/{login}"
-        r = requests.put(url, headers=headers, timeout=REQUEST_TIMEOUT)
+        r = session.put(url, timeout=REQUEST_TIMEOUT)
         if r.status_code >= 400:
             fail(f"Failed adding {login} to {slug}: {r.status_code} {r.text}")
         print(f"ADD {slug}: {login}")
 
     for login in to_remove:
         url = f"{API}/orgs/{org}/teams/{slug}/memberships/{login}"
-        r = requests.delete(url, headers=headers, timeout=REQUEST_TIMEOUT)
+        r = session.delete(url, timeout=REQUEST_TIMEOUT)
         if r.status_code >= 400:
             fail(f"Failed removing {login} from {slug}: {r.status_code} {r.text}")
         print(f"REMOVE {slug}: {login}")
@@ -172,13 +188,12 @@ def write_changed_output(changed):
             f.write(f"teams_yaml_changed={'true' if changed else 'false'}\n")
 
 
-def paginate(url, headers):
+def paginate(url, session):
     # GitHub REST pagination: keep fetching until the short page.
     out, page = [], 1
     while True:
-        r = requests.get(
+        r = session.get(
             url,
-            headers=headers,
             params={"per_page": PER_PAGE, "page": page},
             timeout=REQUEST_TIMEOUT,
         )
@@ -196,8 +211,8 @@ def fail(msg):
     raise SystemExit(2)
 
 
-def get_user_id(login, headers):
-    r = requests.get(f"{API}/users/{login}", headers=headers, timeout=REQUEST_TIMEOUT)
+def get_user_id(login, session):
+    r = session.get(f"{API}/users/{login}", timeout=REQUEST_TIMEOUT)
     if r.status_code == 404:
         fail(f"Unknown GitHub user: {login}")
     r.raise_for_status()
@@ -207,11 +222,10 @@ def get_user_id(login, headers):
     return int(uid)
 
 
-def invite_by_login(org, login, headers):
-    uid = get_user_id(login, headers)
-    r = requests.post(
+def invite_by_login(org, login, session):
+    uid = get_user_id(login, session)
+    r = session.post(
         f"{API}/orgs/{org}/invitations",
-        headers=headers,
         json={"invitee_id": uid},
         timeout=REQUEST_TIMEOUT,
     )
