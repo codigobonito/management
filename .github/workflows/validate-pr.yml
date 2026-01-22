@@ -119,13 +119,13 @@ jobs:
             sys.exit(1)
 
           if non_org_users:
-            print(f"\n⚠️  {len(non_org_users)} user(s) are not in the organization (invites will be sent)")
+            print(f"\n⚠️  {len(non_org_users)} user(s) are not in the organization (invites will be sent once the PR is merged)")
             print(f"Non-org users: {', '.join(non_org_users)}")
 
           if not invalid_users and not non_org_users:
             print("\n✅ All usernames are valid and are members of the organization")
           elif not invalid_users:
-            print("\n✅ All usernames are valid (some will receive org invites)")
+            print("\n✅ All usernames are valid (some will receive org invites once the PR is merged)")
 
           print("Validation completed successfully.")
           PY
