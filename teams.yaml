@@ -1,7 +1,6 @@
 # AUTOMATICALLY UPDATED — DO NOT EDIT THIS SECTION MANUALLY
-invite_sent:
-- gouttegd
-- icaromsc
+invite_sent: !!set
+  icaromsc: null
 teams:
   admins:
   - jvfe
@@ -11,4 +10,3 @@ teams:
   - lubianat
   vasco:
   - lubianat
-  - gouttegd
