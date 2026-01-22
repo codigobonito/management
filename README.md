@@ -41,6 +41,8 @@ This repository can be used as a template to manage team memberships in your own
 
 ## 2. Create and Configure a GitHub App
 
+> **Note:** These instructions are **PROVISIONAL**. A GitHub Marketplace app for simplified authorization workflow setup is currently being developed. Once available, you'll be able to install the app directly instead of creating your own.
+
 The workflows require a GitHub App to authenticate and manage teams on behalf of your organization. This is necessary because the standard `GITHUB_TOKEN` has limited permissions for organization management.
 
 ### Creating the GitHub App
