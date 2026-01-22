@@ -151,13 +151,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ "${{ steps.validate.outcome }}" == "success" ]; then
-            COMMENT="✅ **Manual validation passed**
+            COMMENT=$(cat <<'EOF'
+          ✅ **Manual validation passed**
 
-          The teams.yaml file has been validated successfully. All usernames exist on GitHub."
+          The teams.yaml file has been validated successfully. All usernames exist on GitHub.
+          EOF
+          )
           else
-            COMMENT="❌ **Manual validation failed**
+            COMMENT=$(cat <<'EOF'
+          ❌ **Manual validation failed**
 
-          The teams.yaml file validation failed. Please check the workflow logs for details about which usernames are invalid."
+          The teams.yaml file validation failed. Please check the workflow logs for details about which usernames are invalid.
+          EOF
+          )
           fi
 
           gh pr comment ${{ inputs.pr_number }} --body "$COMMENT"
