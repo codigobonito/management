@@ -31,7 +31,7 @@ jobs:
           python -m pip install --quiet --upgrade pip
           python -m pip install --quiet pyyaml requests
 
-          python scripts/github_to_teams_yaml.py
+          python scripts/github_to_yaml.py
 
       - name: Create PR if changed
         uses: peter-evans/create-pull-request@v6

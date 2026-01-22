@@ -32,7 +32,7 @@ jobs:
           python -m pip install --quiet --upgrade pip
           python -m pip install --quiet pyyaml requests
 
-          python scripts/teams_yaml_to_github.py
+          python scripts/yaml_to_github.py
 
       - name: Commit and push invite_sent update (if changed)
         if: steps.apply.outputs.teams_yaml_changed == 'true'
