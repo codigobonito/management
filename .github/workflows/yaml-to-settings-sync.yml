@@ -1,4 +1,4 @@
-name: Teams export (GitHub Org Settings -> teams.yaml PR)
+name: GitHub settings --> teams.yaml sync
 
 on:
   workflow_dispatch:

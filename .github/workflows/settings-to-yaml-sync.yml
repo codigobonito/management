@@ -1,9 +1,9 @@
-name: Apply config from teams.yaml -> GitHub
+name: teams.yaml --> GitHub sync
 
 on:
   push:
-    branches: [ main ]
-    paths: [ "teams.yaml" ]
+    branches: [main]
+    paths: ["teams.yaml"]
   workflow_dispatch:
 
 permissions:
