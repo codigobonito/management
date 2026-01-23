@@ -40,6 +40,16 @@ pytest tests/test_validate_pr.py -v
 The test suite covers:
 - **validate_pr.py**: User validation, pagination, and main validation logic
 - **Retry logic**: Configuration consistency, session creation, and retry behavior
+- **yaml_to_github.py**: Team membership synchronization from YAML to GitHub
+  - Adding org members to teams
+  - Adding non-org members to teams (with invites)
+  - Removing members from teams
+  - Handling pending invites
+- **github_to_yaml.py**: Team membership export from GitHub to YAML
+  - Adding members to teams in exports
+  - Removing members from teams in exports
+  - Removing members from org in exports
+  - Preserving pending invites during export
 - **Integration**: Ensures retry logic is properly used in both sync scripts
 
 ## Writing New Tests
