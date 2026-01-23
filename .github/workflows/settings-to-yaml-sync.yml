@@ -3,7 +3,11 @@ name: GitHub settings --> teams.yaml sync
 on:
   workflow_dispatch:
   schedule:
-    - cron: "00 * * * *" # daily
+    - cron: "00 * * * *" # hourly
+
+concurrency:
+  group: team-sync-${{ github.repository }}
+  cancel-in-progress: false
 
 permissions:
   contents: write

@@ -50,6 +50,8 @@ def user_exists(login: str) -> bool:
         print(f"ERROR: Failed to check user '{login}': {e}")
         sys.exit(1)
 
+
+def main():
     # Load teams.yaml
     teams_path = Path("teams.yaml")
     cfg = yaml.safe_load(teams_path.read_text(encoding="utf-8")) or {}
@@ -111,3 +113,7 @@ def user_exists(login: str) -> bool:
         )
 
     print("Validation completed successfully.")
+
+
+if __name__ == "__main__":
+    main()

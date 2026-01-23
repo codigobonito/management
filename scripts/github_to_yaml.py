@@ -6,6 +6,8 @@ from pathlib import Path
 
 import requests
 import yaml
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 API = "https://api.github.com"
 API_VERSION = "2022-11-28"
@@ -14,18 +16,23 @@ REQUEST_TIMEOUT = 60
 COMMENT = "# AUTOMATICALLY UPDATED \u2014 DO NOT EDIT THIS SECTION MANUALLY\n"
 MARKER = "invite_sent:"
 
+# Retry configuration for API calls
+RETRY_TOTAL = 3
+RETRY_BACKOFF_FACTOR = 1
+RETRY_STATUS_FORCELIST = [429, 500, 502, 503, 504]
+
 
 def main():
     org = require_env("ORG")
     token = require_env("TOKEN")
-    headers = auth_headers(token)
+    session = create_session(token)
 
     teams_path = Path("teams.yaml")
     old_desired = load_previous_desired(teams_path)
 
-    org_members, pending_invites = fetch_org_membership(org, headers)
+    org_members, pending_invites = fetch_org_membership(org, session)
 
-    teams_map = export_teams(org, headers, old_desired, org_members, pending_invites)
+    teams_map = export_teams(org, session, old_desired, org_members, pending_invites)
 
     new_text = render_yaml(teams_map, pending_invites)
     teams_path.write_text(new_text, encoding="utf-8")
@@ -50,6 +57,20 @@ def auth_headers(token):
     }
 
 
+def create_session(token):
+    """Create a requests session with retry logic and exponential backoff."""
+    session = requests.Session()
+    retries = Retry(
+        total=RETRY_TOTAL,
+        backoff_factor=RETRY_BACKOFF_FACTOR,
+        status_forcelist=RETRY_STATUS_FORCELIST,
+        respect_retry_after_header=True
+    )
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+    session.headers.update(auth_headers(token))
+    return session
+
+
 def load_previous_desired(path):
     try:
         old_text = path.read_text(encoding="utf-8")
@@ -66,23 +87,23 @@ def normalize_users(users):
     return [u.strip() for u in (users or []) if isinstance(u, str) and u.strip()]
 
 
-def fetch_org_membership(org, headers):
-    members = paginate(f"{API}/orgs/{org}/members", headers)
+def fetch_org_membership(org, session):
+    members = paginate(f"{API}/orgs/{org}/members", session)
     org_members = {m["login"] for m in members if "login" in m}
 
-    invites = paginate(f"{API}/orgs/{org}/invitations", headers)
+    invites = paginate(f"{API}/orgs/{org}/invitations", session)
     pending_invites = {i.get("login") for i in invites if i.get("login")}
 
     return org_members, pending_invites
 
 
-def export_teams(org, headers, old_desired, org_members, pending_invites):
-    teams = paginate(f"{API}/orgs/{org}/teams", headers)
+def export_teams(org, session, old_desired, org_members, pending_invites):
+    teams = paginate(f"{API}/orgs/{org}/teams", session)
     teams_map = {}
 
     for team in sorted(teams, key=lambda x: x["slug"]):
         slug = team["slug"]
-        members = paginate(f"{API}/orgs/{org}/teams/{slug}/members", headers)
+        members = paginate(f"{API}/orgs/{org}/teams/{slug}/members", session)
         gh_logins = {m["login"] for m in members if "login" in m}
 
         # Preserve YAML-desired users that are pending invites (so export doesn't delete them).
@@ -106,13 +127,12 @@ def render_yaml(teams_map, invite_sent):
     return new_text
 
 
-def paginate(url, headers):
+def paginate(url, session):
     # GitHub REST pagination: keep fetching until the short page.
     out, page = [], 1
     while True:
-        r = requests.get(
+        r = session.get(
             url,
-            headers=headers,
             params={"per_page": PER_PAGE, "page": page},
             timeout=REQUEST_TIMEOUT,
         )
