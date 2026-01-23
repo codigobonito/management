@@ -1,4 +1,4 @@
-<img width="863" height="275" alt="grafik" src="https://github.com/user-attachments/assets/c0ee961c-7af2-4899-b3e4-790467086fb7" /># YAML-Based Team Management
+# YAML-based Team Management
 
 Control organization teams from a single `teams.yaml` file. 
 
