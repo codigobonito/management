@@ -3,7 +3,7 @@ name: GitHub settings --> teams.yaml sync
 on:
   workflow_dispatch:
   schedule:
-    - cron: "00 * * * *" # hourly
+    - cron: "33 * * * *" # hourly (staggered to avoid peak load)
 
 concurrency:
   group: team-sync-${{ github.repository }}
