@@ -35,6 +35,10 @@ There are three lightweight workflows:
 
 This repository can be used as a template to manage team memberships in your own GitHub organization. Follow these steps to set it up:
 
+To set up, an OWNER of the _organization_ must give the adequate access levels to an GitHub App and set up the repository secrets. 
+
+After is set, anyone with ADMIN/WRITE access to the _repository_ will be able to change teams and invite people to the org. 
+
 ## 1. Copy the Template Repository
 
 1. Click the "Use this template" button at the top of this repository (or fork it)
