@@ -1,4 +1,4 @@
-# YAML-Based Team Management
+<img width="863" height="275" alt="grafik" src="https://github.com/user-attachments/assets/c0ee961c-7af2-4899-b3e4-790467086fb7" /># YAML-Based Team Management
 
 Control organization teams from a single `teams.yaml` file. 
 
@@ -19,40 +19,78 @@ After tokens are set, anyone with ADMIN/WRITE access to the _repository_ will be
 
 ## 2. Set up tokens via a personal GitHub App
 
-The workflows require a GitHub App to authenticate and manage teams on behalf of your organization without giving it an owners' Personal Access Token (PAT). This is [a standard workflow](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow) for this kind of permissions. 
+The workflows require a GitHub App to authenticate and manage teams on behalf of your organization without giving it an owners' Personal Access Token (PAT). This is [a standard workflow](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow) for these kind of permissions. 
 
-1. Go to your organization settings > Developer settings > GitHub Apps (the URL will be: `https://github.com/organizations/YOUR_ORG/settings/apps` - replace `YOUR_ORG` with your organization name)
-2. Click **"New GitHub App"**
-3. Configure the app with these settings:
+1. Go to your organization settings > Developer settings (on the very bottom > GitHub Apps (the URL will be: `https://github.com/organizations/YOUR_ORG/settings/apps` - replace `YOUR_ORG` with your organization name)
+
+<img width="345" height="353" alt="grafik" src="https://github.com/user-attachments/assets/680e78a2-fc4f-4bf4-a7ae-aeff63dd1794" />
+
+3. Click **"New GitHub App"**
+
+<img width="863" height="275" alt="grafik" src="https://github.com/user-attachments/assets/24754398-ec5b-4452-baad-79ec4a66875f" />
+
+5. Configure the app with these settings:
    - **GitHub App name**: Choose a name (e.g., "Team Management Bot")
-   - **Homepage URL**: Use your repository URL
+   - **Homepage URL**: Use your repository URL, e.g. https://github.com/yaml-team-management/management, but that does not affect behaviour
+  
+Leave everything as default until you get to:
    - **Webhook**: Uncheck "Active" (not needed)
+
+Then configure the permissions
    - **Permissions** (Repository permissions):
      - Contents: Read and write
      - Pull requests: Read and write
    - **Permissions** (Organization permissions):
-     - Members: Read and write
      - Administration: Read (to list teams)
+     - Members: Read and write
    - **Where can this GitHub App be installed?**: Only on this account
-4. Click **"Create GitHub App"**
+6. Click **"Create GitHub App"**
+<img width="557" height="203" alt="grafik" src="https://github.com/user-attachments/assets/4e0330b7-a8a0-4e18-82fd-5e735db79bc8" />
+
+You will get to a page like: 
+
+<img width="1221" height="279" alt="grafik" src="https://github.com/user-attachments/assets/cb2dbc3f-d065-4ae9-b6fd-353e334cebc6" />
+
+Don't close this tab: you will need it for step 3. 
+
 
 ## 3. Configure Repository Secrets
 
 Add the GitHub App credentials as repository secrets:
 
-1. Go to your repository settings > Secrets and variables > Actions > Repository secrets (the URL will be: `https://github.com/YOUR_ORG/management/settings/secrets/actions` - replace with your org and repo names)
+1. Go to the repository you cloned  
+
+2. Go to settings > Secrets and variables > Actions > Repository secrets (the URL will be: `https://github.com/YOUR_ORG/management/settings/secrets/actions` - replace with your org and repo names)
+
+<img width="1024" height="331" alt="grafik" src="https://github.com/user-attachments/assets/4a6459bb-9c60-4993-b63e-280473a4ae97" />
+
 2. Click **"New repository secret"** and add:
    - **Name**: `GH_APP_ID`
-   - **Value**: Your GitHub App ID (from step 2)
-3. Click **"New repository secret"** again and add:
+   - **Value**: Your GitHub App ID. It is a number with 7 digits on the "About" page of your app, e.g.:
+<img width="331" height="135" alt="grafik" src="https://github.com/user-attachments/assets/9a729537-0f11-41f3-b83c-f105b1b7e29d" />
+
+<img width="706" height="529" alt="grafik" src="https://github.com/user-attachments/assets/65146b23-b405-471f-ba01-d209e968ec3a" />
+
+3. Now, on the App settings page (something like `https://github.com/organizations/YOUR_ORG/settings/apps/team-management-bot`) click on "Generate a Private Key". This will generate and download a key into a `.pem` file: 
+
+<img width="542" height="117" alt="grafik" src="https://github.com/user-attachments/assets/110baae1-3e40-47f6-8746-691ad1035b0a" />
+
+
+4. Go back to the repository **"New repository secret"** again and add:
    - **Name**: `GH_APP_PRIVATE_KEY`
-   - **Value**: The entire contents of the `.pem` file (including `-----BEGIN RSA PRIVATE KEY-----` and `-----END RSA PRIVATE KEY-----` lines)
+   - **Value**: Copy and paste the entire contents of the `.pem` file (including `-----BEGIN RSA PRIVATE KEY-----` and `-----END RSA PRIVATE KEY-----` lines)
+
+Now your repository secrets are set and the workflows will have the authorization to run: 
+
+<img width="691" height="239" alt="grafik" src="https://github.com/user-attachments/assets/536367aa-bcce-4bff-8d9a-55885f0d6587" />
 
 ## Export Your Current Team Structure
 
-Once you have a prelimilary team structured configured in GitHub, manually trigger the **"GitHub → YAML"** workflow to export your current team structure:
+Once you have set up the system, manually trigger the **"GitHub → YAML"** workflow to export your current team structure:
    - Go to the **Actions** tab in your repository
    - Select and run the **"GitHub settings → teams.yaml sync"** workflow from the left sidebar
+
+(see the "Features" session to see what this framework can or not do)
 
 ## Usage
 
