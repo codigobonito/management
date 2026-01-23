@@ -114,7 +114,18 @@ Make sure you trust anyone with _repository_ write permissions to modify the tea
 
 ## Troubleshooting
 
-If you have some trouble using the workflow, please report it at the [GitHub issue tracker](https://github.com/codigobonito/management). 
+If you have some trouble using the workflow, please report it at the [GitHub issue tracker](https://github.com/codigobonito/management).
+
+### Scheduled Workflow Delays
+
+The hourly sync workflow uses GitHub Actions' `schedule` trigger. Note that:
+
+- **Scheduled runs are not guaranteed to execute at exact times.** Delays of 10-30 minutes are normal, especially during periods of high GitHub Actions load.
+- **During peak load, scheduled runs may be dropped entirely** without appearing in the Actions log.
+- The schedule is staggered to 33 minutes past the hour to reduce queue congestion.
+- If you notice missing scheduled runs, you can always trigger the workflow manually via the "Run workflow" button in the Actions tab.
+
+For more details, see [GitHub's documentation on scheduled workflows](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule). 
 # Features
 
 ## Implemented 
