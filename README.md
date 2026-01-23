@@ -26,10 +26,32 @@ There are three lightweight workflows:
 * Validates GitHub usernames in pull requests before merging
 * Manages inclusion/exclusion for teams in an organization
 * Manages invites for non-org members and team inclusion (when sync is run)
+* Retry logic with exponential backoff for resilient API calls
+* Concurrency control to prevent race conditions between workflows
   
 * GitHub → YAML is run hourly or upon manual dispatch. If changes are detected, a PR is triggered. 
 
 * YAML → GitHub is run when `teams.yaml` is changed in the `main` branch.
+
+# Development
+
+## Running Tests
+
+This repository includes a test suite to validate the core functionality. To run the tests:
+
+```bash
+# Install dependencies (if not already installed)
+pip install pyyaml requests
+
+# Set required environment variables
+export ORG=test-org
+export TOKEN=test-token
+
+# Run tests
+python -m unittest discover tests -v
+```
+
+See [tests/README.md](tests/README.md) for more details on the test suite.
 
 # Reusing this Template in Your Organization
 
