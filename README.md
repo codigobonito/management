@@ -51,6 +51,15 @@ You will get to a page like:
 
 <img width="1221" height="279" alt="grafik" src="https://github.com/user-attachments/assets/cb2dbc3f-d065-4ae9-b6fd-353e334cebc6" />
 
+On the left bar, click on "Install App" install the GitHub App for your organization: 
+
+<img width="907" height="237" alt="grafik" src="https://github.com/user-attachments/assets/9d5f36ed-f294-4a57-8271-3c0fa6a21e35" />
+
+The [better practice](https://en.wikipedia.org/wiki/Principle_of_least_privilege) is installing  the app only for the cloned `management` repository: 
+
+<img width="583" height="735" alt="grafik" src="https://github.com/user-attachments/assets/9960c744-41dc-46cd-8a76-91f955526c4c" />
+
+
 Don't close this tab: you will need it for step 3. 
 
 
